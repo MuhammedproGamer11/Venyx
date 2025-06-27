@@ -2063,22 +2063,35 @@ do
 		end
 	end
 	
-	function section:updateSlider(slider, title, value, min, max, lvalue)
-		slider = self:getModule(slider)
-		
-		if title then
-			slider.Title.Text = title
-		end
-		
-		local bar = slider.Slider.Bar
-local percent = (mouse.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X
+function section:updateSlider(slider, title, value, min, max, lvalue)
+	slider = self:getModule(slider)
 
-if value then -- support negative ranges
-    percent = (value - min) / (max - min)
+	if title then
+		slider.Title.Text = title
+	end
+
+	-- Calculate percentage fill
+	local percent = (value - min) / (max - min)
+	percent = math.clamp(percent, 0, 1)
+	value = math.floor(min + (max - min) * percent)
+
+	-- Update visual value
+	slider.TextBox.Text = tostring(value)
+
+	-- Visual slider bar updates (left-to-right + themed color)
+	local bar = slider.Slider.Bar
+	bar.Fill.AnchorPoint = Vector2.new(0, 0)
+	bar.Fill.Position = UDim2.new(0, 0, 0, 0)
+	bar.Fill.BackgroundColor3 = library.theme["Accent"]
+	utility:Tween(bar.Fill, {Size = UDim2.new(percent, 0, 1, 0)}, 0.1)
+
+	-- Pop animation if value changed
+	if value ~= lvalue and slider.ImageTransparency == 0 then
+		utility:Pop(slider, 10)
+	end
+
+	return value
 end
-
-percent = math.clamp(percent, 0, 1)
-value = value or math.floor(min + (max - min) * percent)
 
 -- Fix text update
 slider.TextBox.Text = tostring(value)
