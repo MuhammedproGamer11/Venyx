@@ -157,51 +157,42 @@ do
 	end
 	
 	function utility:DraggingEnabled(frame, parent)
-	parent = parent or frame
-	local dragging = false
-	local dragInput, startPos, startFramePos
+	
+		parent = parent or frame
+		
+		-- stolen from wally or kiriot, kek
+		local dragging = false
+		local dragInput, mousePos, framePos
 
-	local function update(input)
-		local delta = input.Position - startPos
-		parent.Position = UDim2.new(
-			startFramePos.X.Scale,
-			startFramePos.X.Offset + delta.X,
-			startFramePos.Y.Scale,
-			startFramePos.Y.Offset + delta.Y
-		)
-	end
-
-	frame.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-			dragging = true
-			startPos = input.Position
-			startFramePos = parent.Position
-
-			local connection
-			connection = input.Changed:Connect(function()
-				if input.UserInputState == Enum.UserInputState.End then
-					dragging = false
-					if connection then
-						connection:Disconnect()
+		frame.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 then
+				dragging = true
+				mousePos = input.Position
+				framePos = parent.Position
+				
+				input.Changed:Connect(function()
+					if input.UserInputState == Enum.UserInputState.End then
+						dragging = false
 					end
-				end
-			end)
-		end
-	end)
+				end)
+			end
+		end)
 
-	frame.InputChanged:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-			dragInput = input
-		end
-	end)
+		frame.InputChanged:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseMovement then
+				dragInput = input
+			end
+		end)
 
-	game:GetService("UserInputService").InputChanged:Connect(function(input)
-		if dragging and input == dragInput then
-			update(input)
-		end
-	end)
-end
+		input.InputChanged:Connect(function(input)
+			if input == dragInput and dragging then
+				local delta = input.Position - mousePos
+				parent.Position  = UDim2.new(framePos.X.Scale, framePos.X.Offset + delta.X, framePos.Y.Scale, framePos.Y.Offset + delta.Y)
+			end
+		end)
 
+	end
+	
 	function utility:DraggingEnded(callback)
 		table.insert(self.ended, callback)
 	end
@@ -284,8 +275,6 @@ do
 					ImageColor3 = themes.Accent,
 					ScaleType = Enum.ScaleType.Slice,
 					SliceCenter = Rect.new(4, 4, 296, 296)
-					Active = true,
-
 				}, {
 					utility:Create("TextLabel", { -- title
 						Name = "Title",
@@ -305,10 +294,7 @@ do
 		})
 		
 		utility:InitializeKeybind()
-		-- After creating your Venyx interface:
-                -- local venyx = library.new("Your UI", 12345678)
-
-                utility:DraggingEnabled(venyx.container.Main.TopBar, venyx.container.Main)
+		utility:DraggingEnabled(container.Main.TopBar, container.Main)
 		
 		return setmetatable({
 			container = container,
@@ -2085,18 +2071,26 @@ do
 		end
 		
 		local bar = slider.Slider.Bar
-		local percent = (mouse.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X
-		
-		if value then -- support negative ranges
-			percent = (value - min) / (max - min)
-		end
-		
-		percent = math.clamp(percent, 0, 1)
-		value = value or math.floor(min + (max - min) * percent)
-		
-		slider.TextBox.Text = value
-		utility:Tween(bar.Fill, {Size = UDim2.new(percent, 0, 1, 0)}, 0.1)
-		
+local percent = (mouse.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X
+
+if value then -- support negative ranges
+    percent = (value - min) / (max - min)
+end
+
+percent = math.clamp(percent, 0, 1)
+value = value or math.floor(min + (max - min) * percent)
+
+-- Fix text update
+slider.TextBox.Text = tostring(value)
+
+-- Ensure fill bar grows left to right and is white (or themed)
+bar.Fill.AnchorPoint = Vector2.new(0, 0)
+bar.Fill.Position = UDim2.new(0, 0, 0, 0)
+bar.Fill.BackgroundColor3 = library.theme["Accent"]
+
+-- Animate the fill bar correctly
+utility:Tween(bar.Fill, {Size = UDim2.new(percent, 0, 1, 0)}, 0.1)
+
 		if value ~= lvalue and slider.ImageTransparency == 0 then
 			utility:Pop(slider, 10)
 		end
