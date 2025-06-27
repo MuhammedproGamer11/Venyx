@@ -157,12 +157,9 @@ do
 	end
 	
 	function utility:DraggingEnabled(frame, parent)
-	
-		parent = parent or frame
-		
-		-- stolen from wally or kiriot, kek
-		local dragging = false
-			local dragInput, startPos, startFramePos
+	parent = parent or frame
+	local dragging = false
+	local dragInput, startPos, startFramePos
 
 	local function update(input)
 		local delta = input.Position - startPos
@@ -195,7 +192,7 @@ do
 	end)
 
 	game:GetService("UserInputService").InputChanged:Connect(function(input)
-		if dragging and input == dragInput then
+		if input == dragInput and dragging then
 			update(input)
 		end
 	end)
