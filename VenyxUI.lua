@@ -1644,22 +1644,30 @@ do
 			dragging = false
 		end)
 
-		slider.MouseButton1Down:Connect(function(input)
-			dragging = true
-			
-			while dragging do
-				utility:Tween(circle, {ImageTransparency = 0}, 0.1)
-				
-				value = self:updateSlider(slider, nil, nil, min, max, value)
-				callback(value)
-				
-				utility:Wait()
-			end
-			
-			wait(0.5)
-			utility:Tween(circle, {ImageTransparency = 1}, 0.2)
-		end)
-		
+		local userInput = game:GetService("UserInputService")
+local mouse = game.Players.LocalPlayer:GetMouse()
+
+slider.MouseButton1Down:Connect(function()
+	dragging = true
+	utility:Tween(circle, {ImageTransparency = 0}, 0.1)
+
+	while dragging do
+		local bar = slider.Slider.Bar
+		local percent = (mouse.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X
+		percent = math.clamp(percent, 0, 1)
+
+		value = math.floor(min + (max - min) * percent)
+
+		self:updateSlider(slider, nil, value, min, max, value)
+		callback(value)
+
+		utility:Wait()
+	end
+
+	task.wait(0.5)
+	utility:Tween(circle, {ImageTransparency = 1}, 0.2)
+end)
+
 		textbox.FocusLost:Connect(function()
 			if not tonumber(textbox.Text) then
 				value = self:updateSlider(slider, nil, default or min, min, max)
