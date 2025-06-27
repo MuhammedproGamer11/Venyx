@@ -280,6 +280,8 @@ do
 					ImageColor3 = themes.Accent,
 					ScaleType = Enum.ScaleType.Slice,
 					SliceCenter = Rect.new(4, 4, 296, 296)
+					Active = true,
+
 				}, {
 					utility:Create("TextLabel", { -- title
 						Name = "Title",
