@@ -177,9 +177,13 @@ do
 			startPos = input.Position
 			startFramePos = parent.Position
 
-			input.Changed:Connect(function()
+			local connection
+			connection = input.Changed:Connect(function()
 				if input.UserInputState == Enum.UserInputState.End then
 					dragging = false
+					if connection then
+						connection:Disconnect()
+					end
 				end
 			end)
 		end
@@ -192,7 +196,7 @@ do
 	end)
 
 	game:GetService("UserInputService").InputChanged:Connect(function(input)
-		if input == dragInput and dragging then
+		if dragging and input == dragInput then
 			update(input)
 		end
 	end)
@@ -301,7 +305,10 @@ do
 		})
 		
 		utility:InitializeKeybind()
-		utility:DraggingEnabled(container.Main.TopBar, container.Main)
+		-- After creating your Venyx interface:
+                -- local venyx = library.new("Your UI", 12345678)
+
+                utility:DraggingEnabled(venyx.container.Main.TopBar, venyx.container.Main)
 		
 		return setmetatable({
 			container = container,
