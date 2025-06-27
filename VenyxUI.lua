@@ -2070,22 +2070,22 @@ function section:updateSlider(slider, title, value, min, max, lvalue)
 		slider.Title.Text = title
 	end
 
-	-- Calculate percentage fill
+	-- Correct percent calculation (based on given value)
 	local percent = (value - min) / (max - min)
 	percent = math.clamp(percent, 0, 1)
 	value = math.floor(min + (max - min) * percent)
 
-	-- Update visual value
+	-- Update text box display
 	slider.TextBox.Text = tostring(value)
 
-	-- Visual slider bar updates (left-to-right + themed color)
+	-- Update slider bar visuals
 	local bar = slider.Slider.Bar
 	bar.Fill.AnchorPoint = Vector2.new(0, 0)
 	bar.Fill.Position = UDim2.new(0, 0, 0, 0)
 	bar.Fill.BackgroundColor3 = library.theme["Accent"]
 	utility:Tween(bar.Fill, {Size = UDim2.new(percent, 0, 1, 0)}, 0.1)
 
-	-- Pop animation if value changed
+	-- Animate pop if the value changed
 	if value ~= lvalue and slider.ImageTransparency == 0 then
 		utility:Pop(slider, 10)
 	end
